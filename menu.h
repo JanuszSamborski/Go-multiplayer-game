@@ -32,8 +32,8 @@ int getch()
 class menu
 {
 
-//protected:
-public:
+protected:
+
 	vector<string> options;
 	int amOfOpt, choice, result;
 	bool accepted;
@@ -53,34 +53,6 @@ public:
 				cout<<"\033[0m\n";
 			}
 		}
-	}
-
-	string IPAsk()
-	{
-		string IP = "";
-		char aux = 0;
-
-		while(aux != 10)
-		{
-			system("clear");
-			centerText("Input IP", 1);
-			cout<<"\033[1;32m";
-			centerText(IP, 2);
-			cout<<"\033[0m";
-
-			aux = getch();
-
-			if(aux == 127 && IP.size() != 0)
-			{
-				IP = IP.substr(0, IP.size()-1);
-				continue;
-			}
-
-			if(aux >= 'a' && aux <= 'z' || aux >= 'A' && aux <= 'Z' || aux >= '0' && aux <= '9' || aux == '.' || aux == ':')
-				IP += aux;
-		}
-
-		return IP;
 	}
 
 	void getInput()
@@ -178,5 +150,33 @@ public:
 		result = choice;
 		choice = 0;
 		return result;
+	}
+
+	string IPAsk()
+	{
+		string IP = "";
+		char aux = 0;
+
+		while(aux != 10)
+		{
+			system("clear");
+			centerText("Input IP", 1);
+			cout<<"\033[1;32m";
+			centerText(IP, 2);
+			cout<<"\033[0m";
+
+			aux = getch();
+
+			if(aux == 127 && IP.size() != 0)
+			{
+				IP = IP.substr(0, IP.size()-1);
+				continue;
+			}
+
+			if(aux >= 'a' && aux <= 'z' || aux >= 'A' && aux <= 'Z' || aux >= '0' && aux <= '9' || aux == '.' || aux == ':')
+				IP += aux;
+		}
+
+		return IP;
 	}
 };
