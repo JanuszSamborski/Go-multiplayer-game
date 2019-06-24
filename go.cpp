@@ -4,7 +4,9 @@
 #include<list>
 #include<utility>
 #include<algorithm>
+
 using namespace std;
+
 #define WHITE 1
 #define BLACK -1
 #define EMPTY 0
