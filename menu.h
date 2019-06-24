@@ -160,7 +160,7 @@ public:
 	string IPAsk()
 	{
 		string IP = "";
-		char aux = 0;
+		char aux = 0; 
 
 		while(aux != 10)
 		{
