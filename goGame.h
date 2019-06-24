@@ -144,44 +144,51 @@ public:
   int drawBoard(vector<vector<int>> &board)
   {
   int board_size = board.size();
-  char buffer[board_size+1];
-
+  char buffer[board_size*2];
   for(size_t y=0; y<board_size; y++)
   {
     for(size_t x=0; x<board_size; x++)
+    {
+      buffer[x*2]='0';
       switch (board[y][x])
       {
         case EMPTY:
-
+        {
           if(y==0 && x==0)
-            buffer[x]=(char)(0xDA);
+            buffer[x*2]=(char)(0xDA);
           else if(y==0 && x==board_size-1)
-            buffer[x]=(char)(0xBF);
+            buffer[x*2]=(char)(0xBF);
           else if(y==board_size-1 && x==0)
-            buffer[x]=(char)(0xC0); //└
+            buffer[x*2]=(char)(0xC0);
           else if(y==board_size-1 && x==board_size-1)
-            buffer[x]=(char)(0xD9);
+            buffer[x*2]=(char)(0xD9);
           else if(y==0)
-            buffer[x]=(char)(0xC2);
+            buffer[x*2]=(char)(0xC2);
           else if(y==board_size-1)
-            buffer[x]=(char)(0xC1);
+            buffer[x*2]=(char)(0xC1);
           else if(x==0)
-            buffer[x]=(char)(0xC3);
+            buffer[x*2]=(char)(0xC3);
           else if(x==board_size-1)
-            buffer[x]=(char)(0xB4);
+            buffer[x*2]=(char)(0xB4);
           else
-            buffer[x]=(char)(0xC5);
-        break;
+            buffer[x*2]=(char)(0xC5);
+          //buffer[x*2]='+';
+          break;
+          }
         case WHITE:
-          buffer[x]='W';
+          buffer[x*2]='W';
+          //printf("y: %d x: %d v: %d\n", y, x, board[][]);
           break;
         case BLACK:
-          buffer[x]='B';
+          buffer[x*2]='B';
           break;
       }
-      buffer[board_size]='\0';
-      printf("%s\n", buffer);
+      if(x<board_size-1)
+        buffer[x*2+1]=(char)(0xC4);
     }
+    buffer[board_size*2-1]='\0';
+    printf("%s\n", buffer);
+  }
   return 0;
 }
 
@@ -313,23 +320,5 @@ private:
 
   }
 };
-/*
-int main()
-{
-  int board_size=9;
-  int captured_white=0;
-  int captured_black=0;
-  int points_black=0;
-  int points_white=0;
-  vector<vector<int>> board;
-  initializeBoard(board, board_size);
 
-  printf("%d\n", captured_black);
-  countPoints(board, points_black, points_white, captured_black, captured_white);
-  printf("points black: %d\npoints white: %d\n", points_black, points_white);
-
-  //countPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
-  return 0;
-}
-*/
 #endif
