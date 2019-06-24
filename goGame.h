@@ -6,6 +6,7 @@
 #include<list>
 #include<utility>
 #include<algorithm>
+#include<stdlib.h>
 using namespace std;
 
 class logic
@@ -17,6 +18,7 @@ public:
   int captured_black=0;
   int points_black=0;
   int points_white=0;
+  pair<int,int> cursor_position=make_pair(0,0);
   vector<vector<int>> board;
 
   enum fieldValues
@@ -141,60 +143,85 @@ public:
     }
 }
 
-  int drawBoard(vector<vector<int>> &board)
+  int drawBoard(vector<vector<int>> &board, pair<int,int> cursor, bool cursor_player)
   {
+  system("clear");
   int board_size = board.size();
-  char buffer[board_size*2];
+  char buffer[board_size*2][board_size];
   for(size_t y=0; y<board_size; y++)
   {
     for(size_t x=0; x<board_size; x++)
     {
-      buffer[x*2]='0';
       switch (board[y][x])
       {
         case EMPTY:
         {
           if(y==0 && x==0)
-            buffer[x*2]=(char)(0xDA);
+            buffer[x*2][y]=(char)(0xDA);
           else if(y==0 && x==board_size-1)
-            buffer[x*2]=(char)(0xBF);
+            buffer[x*2][y]=(char)(0xBF);
           else if(y==board_size-1 && x==0)
-            buffer[x*2]=(char)(0xC0);
+            buffer[x*2][y]=(char)(0xC0);
           else if(y==board_size-1 && x==board_size-1)
-            buffer[x*2]=(char)(0xD9);
+            buffer[x*2][y]=(char)(0xD9);
           else if(y==0)
-            buffer[x*2]=(char)(0xC2);
+            buffer[x*2][y]=(char)(0xC2);
           else if(y==board_size-1)
-            buffer[x*2]=(char)(0xC1);
+            buffer[x*2][y]=(char)(0xC1);
           else if(x==0)
-            buffer[x*2]=(char)(0xC3);
+            buffer[x*2][y]=(char)(0xC3);
           else if(x==board_size-1)
-            buffer[x*2]=(char)(0xB4);
+            buffer[x*2][y]=(char)(0xB4);
           else
-            buffer[x*2]=(char)(0xC5);
-          //buffer[x*2]='+';
+            buffer[x*2][y]=(char)(0xC5);
           break;
           }
         case WHITE:
-          buffer[x*2]='W';
-          //printf("y: %d x: %d v: %d\n", y, x, board[][]);
+          buffer[x*2][y]='W';
           break;
         case BLACK:
-          buffer[x*2]='B';
+          buffer[x*2][y]='B';
           break;
       }
       if(x<board_size-1)
-        buffer[x*2+1]=(char)(0xC4);
+        buffer[x*2+1][y]=(char)(0xC4);
     }
-    buffer[board_size*2-1]='\0';
-    printf("%s\n", buffer);
+    buffer[board_size*2-1][y]='\n';
   }
+
+  for(int y=0; y<board_size; y++)
+    for(int x=0; x<board_size*2; x++)
+    {
+      cout<<"\e[1m";
+      if(y==cursor.second && x==cursor.first*2)
+      {
+        if(cursor_player)
+        {
+          cout<<"\e[107m\e[30m";
+          cout<<buffer[x][y];
+          cout<<"\e[0m";
+        }
+        else
+        {
+          cout<<"\e[41m";
+          cout<<buffer[x][y];
+          cout<<"\e[0m";
+        }
+      }
+      else
+      {
+        cout<<"\e[100m";
+        cout<<buffer[x][y];
+        cout<<"\e[0m";
+      }
+    }
   return 0;
 }
 
-  void addStone(vector<vector<int>> &board, int color, int position[2], int &captured_black, int &captured_white)
+  bool addStone(vector<vector<int>> &board, int color, int position[2], int &captured_black, int &captured_white)
   {
   if(board[position[0]][position[1]]==EMPTY)
+  {
     board[position[0]][position[1]]=color;
     int captured=0;
     int iterate_array[4][2]={{-1,0},{0,1},{1,0},{0,-1}};
@@ -217,7 +244,63 @@ public:
       {
         captured_black += captured;
       }
+      return true;
+    }
+    else
+      return false;
 }
+
+  void drawScreen(pair<int,int> &cursor_position, bool cursor_player)
+  {
+    int g = getch();
+		if(g == 27)
+		{
+			getch();
+			g = getch();
+		}
+    cout<<g<<endl;
+    if(g==65)
+    {
+      if(cursor_position.second>0)
+      {
+        cursor_position.second--;
+        drawBoard(board, cursor_position, cursor_player);
+      }
+    }
+    else if(g==66)
+    {
+      if(cursor_position.second<board_size-1)
+      {
+        cursor_position.second++;
+        drawBoard(board, cursor_position, cursor_player);
+      }
+    }
+    else if(g==67)
+    {
+      if(cursor_position.first<board_size-1)
+      {
+        cursor_position.first++;
+        drawBoard(board, cursor_position, cursor_player);
+      }
+    }
+    else if(g==68)
+    {
+      if(cursor_position.first>0)
+      {
+        cursor_position.first--;
+        drawBoard(board, cursor_position, cursor_player);
+      }
+    }
+    else if(g==10)
+    {
+      int a[2];
+      a[0]=cursor_position.second;
+      a[1]=cursor_position.first;
+      addStone(board, WHITE, a, captured_black, captured_white);
+      drawBoard(board, cursor_position, cursor_player);
+    }
+
+  }
 
 private:
   bool inVector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
@@ -319,6 +402,27 @@ private:
       return captured;
 
   }
+
+  int getch()
+  {
+  int c = 0;
+
+  struct termios org_opts, new_opts;
+  int res = 0;
+
+  res = tcgetattr(STDIN_FILENO, &org_opts);
+  assert(res == 0);
+
+  memcpy(&new_opts, &org_opts, sizeof(new_opts));
+  new_opts.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ECHOPRT | ECHOKE | ICRNL);
+  tcsetattr(STDIN_FILENO, TCSANOW, &new_opts);
+  c = getchar();
+
+  res = tcsetattr(STDIN_FILENO, TCSANOW, &org_opts);
+  assert(res == 0);
+  return(c);
+}
+
 };
 
 #endif
