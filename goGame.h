@@ -7,7 +7,7 @@
 #include<utility>
 #include<algorithm>
 using namespace std;
- 
+
 class logic
 {
 public:
