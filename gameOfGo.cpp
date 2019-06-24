@@ -1,12 +1,22 @@
 #include<iostream>
+#include<vector>
 #include"menu.h"
+#include"GO_LOGIC_H.h"
 
 using namespace std;
 
 int main()
 {
+	int board_size;
+  int captured_white=0;
+  int captured_black=0;
+  int points_black=0;
+  int points_white=0;
+  vector<vector<int>> board;
+
+
 	menu m1, m2, m3, m4;
-	int x = -1, y = -1, z = -1, mapSize = 0;
+	int x = -1, y = -1, z = -1;
 	string s1[] = {"Host", "Join", "Exit"},
 	s2[] = {"Accept", "Map size", "Back"},
 	s3[] = {"Input server IP", "Back"},
@@ -30,7 +40,7 @@ int main()
 				y = m2.ask();
 
 				if(y == 1)
-					mapSize = m4.ask();
+					board_size = m4.ask();
 			}
 
 		if(x == 0)

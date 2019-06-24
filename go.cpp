@@ -1,17 +1,13 @@
+#include "GO_LOGIC_H.h"
 #include<iostream>
 #include<vector>
 #include<string>
 #include<list>
 #include<utility>
 #include<algorithm>
-
 using namespace std;
 
-#define WHITE 1
-#define BLACK -1
-#define EMPTY 0
-
-int Initialize_board(vector<vector<int>> &board, int board_size)
+int logic::initializeBoard(vector<vector<int>> &board, int board_size)
 {
   for(int y=0; y<board_size; y++)
   {
@@ -22,7 +18,7 @@ int Initialize_board(vector<vector<int>> &board, int board_size)
   return 0;
 }
 
-bool In_vector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
+bool logic::inVector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
 {
   for(int i=0; i<tested.size(); i++)
   {
@@ -34,7 +30,7 @@ bool In_vector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
   return false;
 }
 
-void CountPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
+void logic::countPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
 {
   points_black = captured_white;
   points_white = captured_black;
@@ -56,7 +52,7 @@ void CountPoints(vector<vector<int>> &board, int &points_black, int &points_whit
 
       /*---check if field already tested---*/
       pair<int,int> current_pos = make_pair(pos_y, pos_x);
-      if(In_vector(tested, current_pos) == true)
+      if(inVector(tested, current_pos) == true)
         continue;
       else
       {
@@ -84,7 +80,7 @@ void CountPoints(vector<vector<int>> &board, int &points_black, int &points_whit
               {
                 if(board[temp_pos.first][temp_pos.second] == EMPTY)
                 {
-                  if(In_vector(tested, temp_pos) == false && In_vector(to_test, temp_pos) == false)
+                  if(inVector(tested, temp_pos) == false && inVector(to_test, temp_pos) == false)
                     to_test.push_back(temp_pos);
                   else
                     continue;
@@ -94,20 +90,20 @@ void CountPoints(vector<vector<int>> &board, int &points_black, int &points_whit
                   if(current_color == EMPTY)
                   {
                     current_color = board[temp_pos.first][temp_pos.second];
-                    if(In_vector(tested, temp_pos) == false)
+                    if(inVector(tested, temp_pos) == false)
                       tested.push_back(temp_pos);
                   }
                   else
                   {
                     if(board[temp_pos.first][temp_pos.second] == current_color)
                     {
-                      if(In_vector(tested, temp_pos) == false)
+                      if(inVector(tested, temp_pos) == false)
                         tested.push_back(temp_pos);
                     }
                     else
                     {
                       to_count = false;
-                      if(In_vector(tested, temp_pos) == false)
+                      if(inVector(tested, temp_pos) == false)
                         tested.push_back(temp_pos);
                     }
                   }
@@ -136,7 +132,7 @@ void CountPoints(vector<vector<int>> &board, int &points_black, int &points_whit
     }
 }
 
-int Capture(vector<vector<int>> &board, int position[2])
+int logic::captureStones(vector<vector<int>> &board, int position[2])
 {
   /*tests if stone group is to be captured, removes captured stones from board
   returns 0 if no stone can be captured else returns number of removed stones*/
@@ -199,7 +195,7 @@ int Capture(vector<vector<int>> &board, int position[2])
         }
       }
       else
-        return -1;
+        return 0;
 
       if (to_test.size()!=0)
       {
@@ -224,7 +220,8 @@ int Capture(vector<vector<int>> &board, int position[2])
 
 }
 
-int Draw_board(vector<vector<int>> &board)
+/* test function for debugging
+int drawBoard(vector<vector<int>> &board)
 {
   int board_size = board.size();
   char buffer[board_size+1];
@@ -249,33 +246,36 @@ int Draw_board(vector<vector<int>> &board)
     }
   return 0;
 }
+*/
 
-int Add_stone(vector<vector<int>> &board, int color, int position[2])
+void logic::addStone(vector<vector<int>> &board, int color, int position[2], int &captured_black, int &captured_white)
 {
-  board[position[0]][position[1]]=color;
-  int captured=0;
-  int iterate_array[4][2]={{-1,0},{0,1},{1,0},{0,-1}};
-  for(int i=0; i<4; i++)
-  {
-    int temp_pos[2];
-    temp_pos[0]=position[0]+iterate_array[i][0];
-    temp_pos[1]=position[1]+iterate_array[i][1];
-    if(temp_pos[0]>=0 && temp_pos[1]>=0 &&
-      temp_pos[0]<board.size() && temp_pos[1]<board.size())
+  if(board[position[0]][position[1]]==EMPTY)
+    board[position[0]][position[1]]=color;
+    int captured=0;
+    int iterate_array[4][2]={{-1,0},{0,1},{1,0},{0,-1}};
+    for(int i=0; i<4; i++)
     {
-      if(board[temp_pos[0]][temp_pos[1]] == -color)
-        captured+=Capture(board, temp_pos);
+      int temp_pos[2];
+      temp_pos[0]=position[0]+iterate_array[i][0];
+      temp_pos[1]=position[1]+iterate_array[i][1];
+      if(temp_pos[0]>=0 && temp_pos[1]>=0 &&
+        temp_pos[0]<board.size() && temp_pos[1]<board.size())
+        {
+          if(board[temp_pos[0]][temp_pos[1]] == -color)
+          captured+=captureStones(board, temp_pos);
+        }
     }
-  }
-  if (captured>0)
-    return captured;
-  else
-    {
-      captured-=Capture(board,position);
-      return captured;
-    }
+    if (captured>0)
+      if(color == BLACK)
+        captured_white += captured;
+      else if(color == WHITE)
+      {
+        captured_black += captured;
+      }
 }
 
+/*
 int main()
 {
   int board_size=9;
@@ -284,21 +284,13 @@ int main()
   int points_black=0;
   int points_white=0;
   vector<vector<int>> board;
-  Initialize_board(board, board_size);
-  board[0][1]=WHITE;
-  board[2][0]=WHITE;
-  //board[1][1]=WHITE;
-  board[1][0]=BLACK;
-  board[0][0]=BLACK;
-  Draw_board(board);
-  int pos[2]={1,1};
-  captured_black+=Add_stone(board, WHITE, pos);
-  printf("%s\n", "---------------------------");
-  Draw_board(board);
+  initializeBoard(board, board_size);
+
   printf("%d\n", captured_black);
-  CountPoints(board, points_black, points_white, captured_black, captured_white);
+  countPoints(board, points_black, points_white, captured_black, captured_white);
   printf("points black: %d\npoints white: %d\n", points_black, points_white);
 
-  //CountPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
+  //countPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
   return 0;
 }
+*/
