@@ -152,16 +152,25 @@ public:
       switch (board[y][x])
       {
         case EMPTY:
+
           if(y==0 && x==0)
-            buffer[0]='\218';
+            buffer[x]=(char)(0xDA);
           else if(y==0 && x==board_size-1)
-            buffer[board_size-1]='\191';
+            buffer[x]=(char)(0xBF);
           else if(y==board_size-1 && x==0)
-            buffer[0]='\192'; //└
+            buffer[x]=(char)(0xC0); //└
           else if(y==board_size-1 && x==board_size-1)
-            buffer[board_size-1]='\217';
+            buffer[x]=(char)(0xD9);
+          else if(y==0)
+            buffer[x]=(char)(0xC2);
+          else if(y==board_size-1)
+            buffer[x]=(char)(0xC1);
+          else if(x==0)
+            buffer[x]=(char)(0xC3);
+          else if(x==board_size-1)
+            buffer[x]=(char)(0xB4);
           else
-            buffer[x]=='\197';
+            buffer[x]=(char)(0xC5);
         break;
         case WHITE:
           buffer[x]='W';
