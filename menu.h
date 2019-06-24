@@ -131,7 +131,8 @@ public:
 		{
 			drawMenu();
 			getInput();
-			cout<<"\033[2J\033[1;1H";
+			system("clear");
+			//cout<<"\033[2J\033[1;1H";
 		}
 
 		accepted = 0;
