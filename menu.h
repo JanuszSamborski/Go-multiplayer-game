@@ -32,7 +32,7 @@ int getch()
 class menu
 {
 
-	protected:
+protected:
 
 	vector<string> options;
 	int amOfOpt, choice, result;
@@ -106,6 +106,16 @@ class menu
 		cout<<s;
 	}
 
+	void hideCursor()
+	{
+		cout<<"\e[?25l";
+	}
+
+	void showCursor()
+	{
+		cout<<"\e[?25h";
+	}
+
 public:
 
 	menu()
@@ -127,14 +137,15 @@ public:
 	*/
 	int ask()
 	{
+		hideCursor();
 		while(accepted != 1)
 		{
+			system("clear");
 			drawMenu();
 			getInput();
-			system("clear");
-			//cout<<"\033[2J\033[1;1H";
 		}
 
+		showCursor();
 		accepted = 0;
 		result = choice;
 		choice = 0;

@@ -8,7 +8,7 @@ using namespace std;
 int main()
 {
 	menu m1, m2, m3, m4;
-	int x = -1, y = -1, z = -1, boardSize;
+	int mainMenuOpt = -1, hostMenuOpt = -1, joinMenuOpt = -1, boardSize;
 	string s1[] = {"Host", "Join", "Exit"},
 	s2[] = {"Accept", "Map size", "Back"},
 	s3[] = {"Input server IP", "Back"},
@@ -19,33 +19,29 @@ int main()
 	m3.setOptions(s3, 2);
 	m4.setOptions(s4, 3);
 
-	system("clear");
-	//cout<<"\033[2J\033[1;1H";		// alternative clearscreen
-	cout<<"\e[?25l";				// hide cursor
-
-	while(x != 2)
+	while(mainMenuOpt != 2)
 	{
-		x = m1.ask();
+		mainMenuOpt = m1.ask();
 
-		if(x == 1)
+		if(mainMenuOpt == 1)
 		{
-			while(y != 2)
+			while(hostMenuOpt != 2)
 			{
-				y = m2.ask();
+				hostMenuOpt = m2.ask();
 
-				if(y == 1)
+				if(hostMenuOpt == 1)
 					boardSize = m4.ask();
 			}
 
-			y = -1;
+			hostMenuOpt = -1;
 		}
 
-		if(x == 0)
+		if(mainMenuOpt == 0)
 		{
-			while(z != 1)
-				z = m3.ask();
+			while(joinMenuOpt != 1)
+				joinMenuOpt = m3.ask();
 
-			z = -1;
+			joinMenuOpt = -1;
 		}
 	}
 
