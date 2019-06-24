@@ -1,4 +1,5 @@
-#include "GO_LOGIC_H.h"
+#ifndef goGame
+#define goGame
 #include<iostream>
 #include<vector>
 #include<string>
@@ -7,31 +8,39 @@
 #include<algorithm>
 using namespace std;
 
-int logic::initializeBoard(vector<vector<int>> &board, int board_size)
+class logic
 {
+public:
+
+  int board_size;
+  int captured_white=0;
+  int captured_black=0;
+  int points_black=0;
+  int points_white=0;
+  vector<vector<int>> board;
+
+  enum fieldValues
+  {
+    WHITE = 1,
+    BLACK = -1,
+    EMPTY = 0
+  };
+
+  int initializeBoard(vector<vector<int>> &board, int board_size, int &captured_white, int &captured_black)
+  {
   for(int y=0; y<board_size; y++)
   {
     board.push_back(vector<int>());
       for(int x=0; x<board_size; x++)
         board[y].push_back(0);
   }
+  captured_black = 0;
+  captured_white = 0;
   return 0;
 }
 
-bool logic::inVector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
-{
-  for(int i=0; i<tested.size(); i++)
+  void countPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
   {
-    if(tested[i].first == test_pos.first && tested[i].second == test_pos.second)
-    {
-      return true;
-    }
-  }
-  return false;
-}
-
-void logic::countPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
-{
   points_black = captured_white;
   points_white = captured_black;
   vector<pair<int,int>> tested;
@@ -132,97 +141,8 @@ void logic::countPoints(vector<vector<int>> &board, int &points_black, int &poin
     }
 }
 
-int logic::captureStones(vector<vector<int>> &board, int position[2])
-{
-  /*tests if stone group is to be captured, removes captured stones from board
-  returns 0 if no stone can be captured else returns number of removed stones*/
-  vector<pair<int,int>> tested;
-  vector<pair<int,int>> to_test;
-  pair<int,int> test_pos;
-  test_pos.first = position[0];
-  test_pos.second = position[1];
-  int color = board[position[0]][position[1]];
-  bool is_captured=false;
-
-  while(true)
+  int drawBoard(vector<vector<int>> &board)
   {
-    if(test_pos.first>=0 && test_pos.first<board.size() &&
-      test_pos.second>=0 && test_pos.second<board.size())                       //check if test_pos inside playfield
-    {
-                                                                                //test adjacent fields, if the same color add to to_test
-      tested.push_back(test_pos);                                               //add to already tested
-      pair<int,int> temp_pos;
-      int iterate_array[4][2]={{-1,0},{0,1},{1,0},{0,-1}};                      //iterate through neighbours
-      for(int i=0; i<4; i++)
-        {
-          temp_pos.first=test_pos.first+iterate_array[i][0];
-          temp_pos.second=test_pos.second+iterate_array[i][1];
-          if(temp_pos.first>=0 && temp_pos.first<board.size() &&
-            temp_pos.second>=0 && temp_pos.second<board.size())                 //check if inside playfield
-          {
-            if(board[temp_pos.first][temp_pos.second]==EMPTY)                   //check if field contains stone
-            {
-              return 0;
-              break;
-            }
-            else if(board[temp_pos.first][temp_pos.second]==color)              //check if field contains stone the same color as selected
-            {
-              bool in_list = false;
-              for (size_t i = 0; i<tested.size(); i++)
-                if(tested[i].first == temp_pos.first && tested[i].second == temp_pos.second)
-                {
-                  in_list=true;
-                  break;
-                }
-
-              if(in_list)
-              {
-                continue;
-              }
-              else
-              {
-                to_test.push_back(temp_pos);
-                continue;
-              }
-            }
-            else if (board[temp_pos.first][temp_pos.second]==-color)
-            {
-              continue;
-            }
-          }
-          else
-          continue;
-        }
-      }
-      else
-        return 0;
-
-      if (to_test.size()!=0)
-      {
-        test_pos=to_test.back();
-        to_test.pop_back();
-      }
-      else
-      {
-        is_captured=true;
-        break;
-      }
-    }
-
-    int captured = tested.size();
-
-    for(int i=0; i<captured; i++)
-    {
-      board[tested.back().first][tested.back().second] = 0;
-      tested.pop_back();
-    }
-    return captured;
-
-}
-
-/* test function for debugging
-int drawBoard(vector<vector<int>> &board)
-{
   int board_size = board.size();
   char buffer[board_size+1];
 
@@ -232,7 +152,25 @@ int drawBoard(vector<vector<int>> &board)
       switch (board[y][x])
       {
         case EMPTY:
-          buffer[x]='+';
+
+          if(y==0 && x==0)
+            buffer[x]=(char)(0xDA);
+          else if(y==0 && x==board_size-1)
+            buffer[x]=(char)(0xBF);
+          else if(y==board_size-1 && x==0)
+            buffer[x]=(char)(0xC0); //└
+          else if(y==board_size-1 && x==board_size-1)
+            buffer[x]=(char)(0xD9);
+          else if(y==0)
+            buffer[x]=(char)(0xC2);
+          else if(y==board_size-1)
+            buffer[x]=(char)(0xC1);
+          else if(x==0)
+            buffer[x]=(char)(0xC3);
+          else if(x==board_size-1)
+            buffer[x]=(char)(0xB4);
+          else
+            buffer[x]=(char)(0xC5);
         break;
         case WHITE:
           buffer[x]='W';
@@ -246,10 +184,9 @@ int drawBoard(vector<vector<int>> &board)
     }
   return 0;
 }
-*/
 
-void logic::addStone(vector<vector<int>> &board, int color, int position[2], int &captured_black, int &captured_white)
-{
+  void addStone(vector<vector<int>> &board, int color, int position[2], int &captured_black, int &captured_white)
+  {
   if(board[position[0]][position[1]]==EMPTY)
     board[position[0]][position[1]]=color;
     int captured=0;
@@ -275,6 +212,107 @@ void logic::addStone(vector<vector<int>> &board, int color, int position[2], int
       }
 }
 
+private:
+  bool inVector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
+  {
+    for(int i=0; i<tested.size(); i++)
+    {
+      if(tested[i].first == test_pos.first && tested[i].second == test_pos.second)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  int captureStones(vector<vector<int>> &board, int position[2])
+  {
+    /*tests if stone group is to be captured, removes captured stones from board
+    returns 0 if no stone can be captured else returns number of removed stones*/
+    vector<pair<int,int>> tested;
+    vector<pair<int,int>> to_test;
+    pair<int,int> test_pos;
+    test_pos.first = position[0];
+    test_pos.second = position[1];
+    int color = board[position[0]][position[1]];
+    bool is_captured=false;
+
+    while(true)
+    {
+      if(test_pos.first>=0 && test_pos.first<board.size() &&
+        test_pos.second>=0 && test_pos.second<board.size())                       //check if test_pos inside playfield
+      {
+                                                                                  //test adjacent fields, if the same color add to to_test
+        tested.push_back(test_pos);                                               //add to already tested
+        pair<int,int> temp_pos;
+        int iterate_array[4][2]={{-1,0},{0,1},{1,0},{0,-1}};                      //iterate through neighbours
+        for(int i=0; i<4; i++)
+          {
+            temp_pos.first=test_pos.first+iterate_array[i][0];
+            temp_pos.second=test_pos.second+iterate_array[i][1];
+            if(temp_pos.first>=0 && temp_pos.first<board.size() &&
+              temp_pos.second>=0 && temp_pos.second<board.size())                 //check if inside playfield
+            {
+              if(board[temp_pos.first][temp_pos.second]==EMPTY)                   //check if field contains stone
+              {
+                return 0;
+                break;
+              }
+              else if(board[temp_pos.first][temp_pos.second]==color)              //check if field contains stone the same color as selected
+              {
+                bool in_list = false;
+                for (size_t i = 0; i<tested.size(); i++)
+                  if(tested[i].first == temp_pos.first && tested[i].second == temp_pos.second)
+                  {
+                    in_list=true;
+                    break;
+                  }
+
+                if(in_list)
+                {
+                  continue;
+                }
+                else
+                {
+                  to_test.push_back(temp_pos);
+                  continue;
+                }
+              }
+              else if (board[temp_pos.first][temp_pos.second]==-color)
+              {
+                continue;
+              }
+            }
+            else
+            continue;
+          }
+        }
+        else
+          return 0;
+
+        if (to_test.size()!=0)
+        {
+          test_pos=to_test.back();
+          to_test.pop_back();
+        }
+        else
+        {
+          is_captured=true;
+          break;
+        }
+      }
+
+      int captured = tested.size();
+
+      for(int i=0; i<captured; i++)
+      {
+        board[tested.back().first][tested.back().second] = 0;
+        tested.pop_back();
+      }
+      return captured;
+
+  }
+};
 /*
 int main()
 {
@@ -294,3 +332,4 @@ int main()
   return 0;
 }
 */
+#endif
