@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-	menu m1, m2, m3, m4;
+	Menu m1, m2, m3, m4;
 	int mainMenuOpt = -1, hostMenuOpt = -1, joinMenuOpt = -1, boardSize;
 	string IP;
 	string s1[] = {"Host", "Join", "Exit"},
@@ -28,8 +28,12 @@ int main()
 			while(hostMenuOpt != 2)
 			{
 				hostMenuOpt = m2.ask();
-
-				if(hostMenuOpt == 1)
+				
+				if(hostMenuOpt == 0)
+				{
+					m2.displayHostWait();
+				}
+				else if(hostMenuOpt == 1)
 					boardSize = m4.ask();
 			}
 
@@ -43,7 +47,7 @@ int main()
 				joinMenuOpt = m3.ask();
 
 				if(joinMenuOpt == 0)
-					IP = m3.IPAsk();
+					m3.IPAsk(IP);
 			}
 
 			joinMenuOpt = -1;

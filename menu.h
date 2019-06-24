@@ -29,7 +29,7 @@ int getch()
 	return(c);
 }
 
-class menu
+class Menu
 {
 
 protected:
@@ -118,7 +118,7 @@ protected:
 
 public:
 
-	menu()
+	Menu()
 	{
 		accepted = 0;
 		choice = 0;
@@ -157,10 +157,9 @@ public:
 	*
 	*	\return string - presumably the IP adress, no checks are done whatsoever
 	*/
-	string IPAsk()
+	void IPAsk(string &IP)
 	{
-		string IP = "";
-		char aux = 0; 
+		char aux = 0;
 
 		while(aux != 10)
 		{
@@ -181,7 +180,12 @@ public:
 			if(aux >= 'a' && aux <= 'z' || aux >= 'A' && aux <= 'Z' || aux >= '0' && aux <= '9' || aux == '.' || aux == ':')
 				IP += aux;
 		}
+	}
 
-		return IP;
+	void displayHostWait()
+	{
+		system("clear");
+		centerText("Waiting for client...", 2);
+		throw logic_error("NotImplemented exception");
 	}
 };
