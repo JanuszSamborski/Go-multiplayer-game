@@ -1,14 +1,14 @@
 #include<iostream>
 #include<vector>
 #include"menu.h"
-//#include"GO_LOGIC_H.h"
+#include"goGame.h"
 
 using namespace std;
 
 int main()
 {
-	menu m1, m2, m3, m4;
-	int mainMenuOpt = -1, hostMenuOpt = -1, joinMenuOpt = -1, boardSize;
+	/*menu m1, m2, m3, m4;
+	int x = -1, y = -1, z = -1;
 	string s1[] = {"Host", "Join", "Exit"},
 	s2[] = {"Accept", "Map size", "Back"},
 	s3[] = {"Input server IP", "Back"},
@@ -19,31 +19,29 @@ int main()
 	m3.setOptions(s3, 2);
 	m4.setOptions(s4, 3);
 
-	while(mainMenuOpt != 2)
+	cout<<"\033[2J\033[1;1H";		// initial clearscreen
+	cout<<"\e[?25l";				// hide cursor
+
+	while(x != 2)
 	{
-		mainMenuOpt = m1.ask();
+		x = m1.ask();
 
-		if(mainMenuOpt == 1)
-		{
-			while(hostMenuOpt != 2)
+		if(x == 1)
+			while(y != 2)
 			{
-				hostMenuOpt = m2.ask();
+				y = m2.ask();
 
-				if(hostMenuOpt == 1)
-					boardSize = m4.ask();
+				if(y == 1)
+					board_size = m4.ask();
 			}
 
-			hostMenuOpt = -1;
-		}
-
-		if(mainMenuOpt == 0)
-		{
-			while(joinMenuOpt != 1)
-				joinMenuOpt = m3.ask();
-
-			joinMenuOpt = -1;
-		}
+		if(x == 0)
+			while(z != 1)
+				z = m3.ask();
 	}
-
+*/
+	goGame::goGame game;
+	game.initializeBoard(game.board, 9, game.captured_white, game.captured_black);
+	game.drawBoard(game.board);
 	return 0;
 }
