@@ -152,6 +152,11 @@ public:
 		return result;
 	}
 
+	/*
+	*	Lets the user input string interactively
+	*
+	*	\return string - presumably the IP adress, no checks are done whatsoever
+	*/
 	string IPAsk()
 	{
 		string IP = "";
@@ -160,9 +165,9 @@ public:
 		while(aux != 10)
 		{
 			system("clear");
-			centerText("Input IP", 1);
+			centerText("Input IP", 2);
 			cout<<"\033[1;32m";
-			centerText(IP, 2);
+			centerText(IP, 3);
 			cout<<"\033[0m";
 
 			aux = getch();

@@ -1,7 +1,6 @@
 #include<iostream>
 #include<vector>
 #include"menu.h"
-//#include"GO_LOGIC_H.h"
 
 using namespace std;
 
