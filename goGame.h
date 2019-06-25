@@ -19,7 +19,9 @@ public:
   int points_black=0;
   int points_white=0;
   pair<int,int> cursor_position=make_pair(0,0);
+  bool cursor_player = false;
   vector<vector<int>> board;
+  int local_player_color = WHITE;
 
   enum fieldValues
   {
@@ -143,7 +145,7 @@ public:
     }
 }
 
-  int drawBoard(vector<vector<int>> &board, pair<int,int> cursor, bool cursor_player)
+  int drawBoard(vector<vector<int>> &board, pair<int,int> cursor, bool &cursor_player, int &captured_black, int &captured_white)
   {
   system("clear");
   int board_size = board.size();
@@ -177,10 +179,10 @@ public:
           break;
           }
         case WHITE:
-          buffer[x*2][y]='W';
+          buffer[x*2][y]='O';
           break;
         case BLACK:
-          buffer[x*2][y]='B';
+          buffer[x*2][y]='0';
           break;
       }
       if(x<board_size-1)
@@ -192,7 +194,7 @@ public:
   for(int y=0; y<board_size; y++)
     for(int x=0; x<board_size*2; x++)
     {
-      cout<<"\e[1m";
+      cout<<"\e[?25l";
       if(y==cursor.second && x==cursor.first*2)
       {
         if(cursor_player)
@@ -211,10 +213,34 @@ public:
       else
       {
         cout<<"\e[100m";
-        cout<<buffer[x][y];
+        if(buffer[x][y] == '0')
+        {
+          cout<<"\e[30m";
+          cout<<buffer[x][y];
+
+        }
+        else if(buffer[x][y] == 'O')
+        {
+          cout<<"\e[97m";
+          cout<<buffer[x][y];
+        }
+        else
+        {
+          cout<<"\e[37m";
+          cout<<buffer[x][y];
+        }
         cout<<"\e[0m";
       }
     }
+    cout<<"Captured black stones: " + to_string(captured_black) +
+    "\nCaptured white stones: " + to_string(captured_white);
+    if(cursor_player)
+      cout<<"\n\nIt's your turn, place your stone\n";
+    else
+      cout<<"\n\nIt's opponent's turn, wait for your turn\n";
+
+    cout<<"\nInstructions:\nPress \e[31marrow keys\e[0m to select intersection\nPress \e[31mP\e[0m to pass turn\n";
+    cout<<"Press \e[31mENTER\e[0m to select intersection\nPress \e[31mQ\e[0m to quit";
   return 0;
 }
 
@@ -250,7 +276,7 @@ public:
       return false;
 }
 
-  void drawScreen(pair<int,int> &cursor_position, bool cursor_player)
+  void getInput(pair<int,int> &cursor_position, bool &cursor_player, int &captured_black, int &captured_white)
   {
     int g = getch();
 		if(g == 27)
@@ -258,48 +284,75 @@ public:
 			getch();
 			g = getch();
 		}
-    cout<<g<<endl;
-    if(g==65)
-    {
-      if(cursor_position.second>0)
-      {
-        cursor_position.second--;
-        drawBoard(board, cursor_position, cursor_player);
-      }
-    }
-    else if(g==66)
-    {
-      if(cursor_position.second<board_size-1)
-      {
-        cursor_position.second++;
-        drawBoard(board, cursor_position, cursor_player);
-      }
-    }
-    else if(g==67)
-    {
-      if(cursor_position.first<board_size-1)
-      {
-        cursor_position.first++;
-        drawBoard(board, cursor_position, cursor_player);
-      }
-    }
-    else if(g==68)
-    {
-      if(cursor_position.first>0)
-      {
-        cursor_position.first--;
-        drawBoard(board, cursor_position, cursor_player);
-      }
-    }
-    else if(g==10)
-    {
-      int a[2];
-      a[0]=cursor_position.second;
-      a[1]=cursor_position.first;
-      addStone(board, WHITE, a, captured_black, captured_white);
-      drawBoard(board, cursor_position, cursor_player);
-    }
 
+    if(cursor_player)
+    {
+      if(g==65)
+      {
+        if(cursor_position.second>0)
+        {
+          cursor_position.second--;
+          drawBoard(board, cursor_position, cursor_player, captured_black, captured_white);
+        }
+      }
+      else if(g==66)
+      {
+        if(cursor_position.second<board_size-1)
+        {
+          cursor_position.second++;
+          drawBoard(board, cursor_position, cursor_player, captured_black, captured_white);
+        }
+      }
+      else if(g==67)
+      {
+        if(cursor_position.first<board_size-1)
+        {
+          cursor_position.first++;
+          drawBoard(board, cursor_position, cursor_player, captured_black, captured_white);
+        }
+      }
+      else if(g==68)
+      {
+        if(cursor_position.first>0)
+        {
+          cursor_position.first--;
+          drawBoard(board, cursor_position, cursor_player, captured_black, captured_white);
+        }
+      }
+      else if(g==10)
+      {
+        int a[2];
+        a[0]=cursor_position.second;
+        a[1]=cursor_position.first;
+        addStone(board, local_player_color, a, captured_black, captured_white);
+        drawBoard(board, cursor_position, cursor_player, captured_black, captured_white);
+      }
+      else if(g==112)
+      {
+        //TODO: add action on pass
+      }
+    }
+    if(g==113)
+    {
+      //TODO: finish action on quit
+      system("clear");
+      cout<<"If you want to quit press \e[31mY\e[0m, else press any other key";
+      g = getch();
+      if(g == 27)
+  		{
+  			getch();
+  			g = getch();
+  		}
+      if(g==121)
+      {
+        system("clear");
+        cout<<"NO WAY PAL, KEEP PLAYING!";
+      }
+      else
+      {
+        drawBoard(board, cursor_position, cursor_player, captured_black, captured_white);
+      }
+    }
   }
 
 private:
