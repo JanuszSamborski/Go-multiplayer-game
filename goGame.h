@@ -267,7 +267,7 @@ public:
         }
     }
     if (captured>0)
-    {
+    { 
       if(color == BLACK)
         captured_white += captured;
       else if(color == WHITE)
