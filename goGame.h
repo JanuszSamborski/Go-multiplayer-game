@@ -1,5 +1,3 @@
-#ifndef goGame
-#define goGame
 #include<iostream>
 #include<vector>
 #include<string>
@@ -8,6 +6,8 @@
 #include<algorithm>
 #include<stdlib.h>
 using namespace std;
+
+#pragma once
 
 class logic
 {
@@ -267,7 +267,7 @@ public:
         }
     }
     if (captured>0)
-    { 
+    {
       if(color == BLACK)
         captured_white += captured;
       else if(color == WHITE)
@@ -486,5 +486,3 @@ private:
 }
 
 };
-
-#endif
