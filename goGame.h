@@ -249,6 +249,7 @@ public:
   if(board[position[0]][position[1]]==EMPTY)
   {
     board[position[0]][position[1]]=color;
+    bool surrounded=true;
     int captured=0;
     int iterate_array[4][2]={{-1,0},{0,1},{1,0},{0,-1}};
     for(int i=0; i<4; i++)
@@ -260,16 +261,23 @@ public:
         temp_pos[0]<board.size() && temp_pos[1]<board.size())
         {
           if(board[temp_pos[0]][temp_pos[1]] == -color)
-          captured+=captureStones(board, temp_pos);
+            captured+=captureStones(board, temp_pos);
+          else
+            surrounded = false;
         }
     }
     if (captured>0)
+    {
       if(color == BLACK)
         captured_white += captured;
       else if(color == WHITE)
-      {
         captured_black += captured;
-      }
+
+    }
+    else if(surrounded == true)
+    {
+      board[position[0]][position[1]]=EMPTY;
+    }
       return true;
     }
     else
@@ -347,6 +355,7 @@ public:
       {
         system("clear");
         cout<<"NO WAY PAL, KEEP PLAYING!";
+        cout<<"\e[?25h"<<endl;
       }
       else
       {
