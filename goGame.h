@@ -248,6 +248,8 @@ public:
 
 		if(Connection -> isServer())
 			is_host = true;
+
+		syslog(LOG_INFO, "Initialized goGame board");
 	}
 
 	enum fieldValues
@@ -522,7 +524,6 @@ public:
 
 				cout<<"\nInstructions:\nPress \e[31marrow keys\e[0m to select intersection\nPress \e[31mP\e[0m to pass turn\n"
 					<<"Press \e[31mENTER\e[0m to select intersection\n";
-					// <<"Press \e[31mQ\e[0m to quit\n";
 	    }
 
 		return 0;
@@ -635,24 +636,6 @@ public:
 		{
 			receiveUpdate();
 		}
-		// if(g==113)
-		// {
-		// 	//TODO: finish action on quit
-		// 	system("clear");
-		// 	cout<<"If you want to quit press \e[31mY\e[0m, else press any other key";
-		// 	g = getch();
-		// 	if(g == 27)
-		// 	{
-		// 		getch();
-		// 		g = getch();
-		// 	}
-		// 	if(g==121)
-		// 	{
-		// 		system("clear");
-		// 		cout<<"NO WAY PAL, KEEP PLAYING!";
-		// 		cout<<"\e[?25h"<<endl;
-		// 	}
-		// }
 	}
 
 	void run()
@@ -670,5 +653,7 @@ public:
 		centerText("[Press any key to continue]", 5);
 		cout<<"\033[0m";
 		getchar();
+
+		syslog(LOG_INFO, "goGame session ended successfully");
 	}
 };

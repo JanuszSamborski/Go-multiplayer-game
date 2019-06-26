@@ -110,7 +110,7 @@ class networkingServer: public networkingBase
 		char str[INET6_ADDRSTRLEN + 1];
 		bzero(str, sizeof(str));
 		inet_ntop(AF_INET6, (struct sockaddr  *) &cliaddr.sin6_addr,  str, sizeof(str));
-		cout<<"Connection from: " + (string)str<<endl;
+		syslog(LOG_ERR, "Server connection established, connection from: %d", str);
 	}
 
 	~networkingServer()
@@ -148,6 +148,8 @@ class networkingClient : public networkingBase
 
 		if(connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
 			throw logic_error("Connect error: " + (string)strerror(errno));
+
+		syslog(LOG_INFO, "Client connected");
 	}
 
 	~networkingClient()

@@ -1,5 +1,6 @@
 #include<iostream>
 #include<vector>
+#include<syslog.h>
 #include"menu.h"
 #include"networking.h"
 #include"goGame.h"
@@ -23,6 +24,12 @@ int main()
 	m3.setOptions(s3, 2);		// join
 	m4.setOptions(s4, 3);		// map size
 
+	setlogmask(LOG_UPTO(LOG_NOTICE));
+
+	openlog("gameOfGo", LOG_CONS | LOG_PID | LOG_NDELAY, LOG_USER);
+
+	syslog(LOG_NOTICE, "Program started by User %d", getuid());
+
 	while(mainMenuOpt != 2)
 	{
 		mainMenuOpt = m1.ask();
@@ -35,7 +42,9 @@ int main()
 				
 				if(hostMenuOpt == 0)
 				{
-					Server = new networkingServer();	
+					try { Server = new networkingServer(); }
+					catch(logic_error& exc) { syslog(LOG_ERR, exc.what()); continue; }
+
 					goGame Game(Server);
 
 					if(boardSize == 0)
@@ -47,7 +56,8 @@ int main()
 					
 					Game.initializeBoard();
 
-					Game.run();
+					try { Game.run(); }
+					catch(logic_error& exc) { syslog(LOG_ERR, exc.what()); }
 
 					delete Server;
 				}
@@ -67,13 +77,15 @@ int main()
 				if(joinMenuOpt == 0)
 				{
 					m3.IPAsk(IP);
-					Client = new networkingClient((char*)IP.c_str());
+					try { Client = new networkingClient((char*)IP.c_str()); }
+					catch(logic_error& exc) { syslog(LOG_ERR, exc.what()); continue; }
 					
 					goGame Game(Client);
 
 					Game.initializeBoard();
 
-					Game.run();
+					try { Game.run(); }
+					catch(logic_error& exc) { syslog(LOG_ERR, exc.what()); }
 
 					delete Client;
 				}
@@ -82,6 +94,9 @@ int main()
 			joinMenuOpt = -1;
 		}
 	}
+
+	syslog(LOG_NOTICE, "Program ended successfully");
+	closelog();
 
 	return 0;
 }
