@@ -181,11 +181,4 @@ public:
 				IP += aux;
 		}
 	}
-
-	void displayHostWait()
-	{
-		system("clear");
-		centerText("Waiting for client...", 2);
-		//throw logic_error("NotImplemented exception");
-	}
 };

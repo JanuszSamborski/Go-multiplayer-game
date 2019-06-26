@@ -72,7 +72,6 @@ class networkingBase
 
 		return received_value;
 	}
-
 };
 
 class networkingServer: public networkingBase
@@ -85,13 +84,12 @@ class networkingServer: public networkingBase
 
 	networkingServer()
 	{
-
 		int so_reuseaddr = 1;
 
 		if((listenfd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
 			throw logic_error("Socket error: " + (string)strerror(errno));
 
-		if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof so_reuseaddr) < 0)
+		if(setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof so_reuseaddr) < 0)
     		throw logic_error("Setsockopt error: " + (string)strerror(errno));
 
 		bzero(&servaddr, sizeof(servaddr));
@@ -109,16 +107,15 @@ class networkingServer: public networkingBase
 		if((sockfd = accept(listenfd, (struct sockaddr *) &cliaddr, &len)) < 0)
 			throw logic_error("Accept error: " + (string)strerror(errno));
 
-		// for debug prints ip addr
 		char str[INET6_ADDRSTRLEN + 1];
 		bzero(str, sizeof(str));
 		inet_ntop(AF_INET6, (struct sockaddr  *) &cliaddr.sin6_addr,  str, sizeof(str));
-		printf("Connection from %s\n", str);
-		// end debug
+		cout<<"Connection from: " + (string)str<<endl;
 	}
 
 	~networkingServer()
 	{
+		close(listenfd);
 		close(sockfd);
 	}
 
@@ -151,6 +148,11 @@ class networkingClient : public networkingBase
 
 		if(connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
 			throw logic_error("Connect error: " + (string)strerror(errno));
+	}
+
+	~networkingClient()
+	{
+		close(sockfd);
 	}
 
 	bool isServer()

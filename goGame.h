@@ -37,7 +37,7 @@ private:
 	void receiveUpdate()
 	{
 		buff = Connection->receiveMessage();
-    //cout<<"\nMessage: "<<buff.type<<"/"<<buff.length<<"/"<<buff.value.x<<":"<<buff.value.y<<endl;
+    	//cout<<"\nMessage: "<<buff.type<<"/"<<buff.length<<"/"<<buff.value.x<<":"<<buff.value.y<<endl;
 		switch(buff.type)
 		{
 			case 0x1:
@@ -181,6 +181,27 @@ private:
 		}
 
 		return captured;
+	}
+
+	void placeCursor(int x, int y)
+	{
+		cout<<"\033[" + to_string(y) + ";" + to_string(x) + "H";
+	}
+
+	void centerText(string s, int row)
+	{
+		int columns, where;
+		struct winsize size;
+
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+
+		columns = size.ws_col + 1;
+
+		where = columns/2 - s.size()/2;
+
+		placeCursor(where, row);
+
+		cout<<s;
 	}
 
 public:
@@ -398,111 +419,113 @@ public:
 	int drawBoard()
 	{
 		system("clear");
-    cout<<endl;
-    if(game_finished)
-    {
-      system("clear");
-      countPoints();
-      cout<<"Final score white: "<<points_white<<" points"<<endl
-      <<"Final score black: "<<points_black<<" points"<<endl;
-    }
-    else
-    {
-    int board_size = board.size();
-		char buffer[board_size*2][board_size];
-		for(size_t y=0; y<board_size; y++)
+		cout<<endl;
+		if(game_finished)
 		{
-			for(size_t x=0; x<board_size; x++)
+			system("clear");
+			countPoints();
+			centerText("Final score white: " + to_string(points_white) + " points", 3);
+			centerText("Final score black: " + to_string(points_black) + " points", 4);
+		}
+		else
+		{
+			int board_size = board.size();
+			char buffer[board_size*2][board_size];
+			for(size_t y=0; y<board_size; y++)
 			{
-				switch (board[y][x])
+				for(size_t x=0; x<board_size; x++)
 				{
-					case EMPTY:
+					switch (board[y][x])
 					{
-						if(y==0 && x==0)
-							buffer[x*2][y]=(char)(0xDA);
-						else if(y==0 && x==board_size-1)
-							buffer[x*2][y]=(char)(0xBF);
-						else if(y==board_size-1 && x==0)
-							buffer[x*2][y]=(char)(0xC0);
-						else if(y==board_size-1 && x==board_size-1)
-							buffer[x*2][y]=(char)(0xD9);
-						else if(y==0)
-							buffer[x*2][y]=(char)(0xC2);
-						else if(y==board_size-1)
-							buffer[x*2][y]=(char)(0xC1);
-						else if(x==0)
-							buffer[x*2][y]=(char)(0xC3);
-						else if(x==board_size-1)
-							buffer[x*2][y]=(char)(0xB4);
-						else
-							buffer[x*2][y]=(char)(0xC5);
+						case EMPTY:
+						{
+							if(y==0 && x==0)
+								buffer[x*2][y]=(char)(0xDA);
+							else if(y==0 && x==board_size-1)
+								buffer[x*2][y]=(char)(0xBF);
+							else if(y==board_size-1 && x==0)
+								buffer[x*2][y]=(char)(0xC0);
+							else if(y==board_size-1 && x==board_size-1)
+								buffer[x*2][y]=(char)(0xD9);
+							else if(y==0)
+								buffer[x*2][y]=(char)(0xC2);
+							else if(y==board_size-1)
+								buffer[x*2][y]=(char)(0xC1);
+							else if(x==0)
+								buffer[x*2][y]=(char)(0xC3);
+							else if(x==board_size-1)
+								buffer[x*2][y]=(char)(0xB4);
+							else
+								buffer[x*2][y]=(char)(0xC5);
+							break;
+						}
+						case WHITE:
+						buffer[x*2][y]='O';
+						break;
+						case BLACK:
+						buffer[x*2][y]='0';
 						break;
 					}
-					case WHITE:
-					buffer[x*2][y]='O';
-					break;
-					case BLACK:
-					buffer[x*2][y]='0';
-					break;
+					if(x<board_size-1)
+						buffer[x*2+1][y]=(char)(0xC4);
 				}
-				if(x<board_size-1)
-					buffer[x*2+1][y]=(char)(0xC4);
+				buffer[board_size*2-1][y]='\n';
 			}
-			buffer[board_size*2-1][y]='\n';
-		}
 
-		for(int y=0; y<board_size; y++)
-			for(int x=0; x<board_size*2; x++)
-			{
-				cout<<"\e[?25l";
-				if(y==cursor_position.second && x==cursor_position.first*2)
+			for(int y=0; y<board_size; y++)
+				for(int x=0; x<board_size*2; x++)
 				{
-					if(player_turn)
+					cout<<"\e[?25l";
+					if(y==cursor_position.second && x==cursor_position.first*2)
 					{
-						cout<<"\e[107m\e[30m";
-						cout<<buffer[x][y];
-						cout<<"\e[0m";
+						if(player_turn)
+						{
+							cout<<"\e[107m\e[30m";
+							cout<<buffer[x][y];
+							cout<<"\e[0m";
+						}
+						else
+						{
+							cout<<"\e[41m";
+							cout<<buffer[x][y];
+							cout<<"\e[0m";
+						}
 					}
 					else
 					{
-						cout<<"\e[41m";
-						cout<<buffer[x][y];
+						cout<<"\e[100m";
+						if(buffer[x][y] == '0')
+						{
+							cout<<"\e[30m";
+							cout<<buffer[x][y];
+
+						}
+						else if(buffer[x][y] == 'O')
+						{
+							cout<<"\e[97m";
+							cout<<buffer[x][y];
+						}
+						else
+						{
+							cout<<"\e[37m";
+							cout<<buffer[x][y];
+						}
 						cout<<"\e[0m";
 					}
 				}
+				cout<<"Captured black stones: " + to_string(captured_black) +
+				"\nCaptured white stones: " + to_string(captured_white);
+				if(player_turn)
+					cout<<"\n\nIt's your turn, place your stone\n";
 				else
-				{
-					cout<<"\e[100m";
-					if(buffer[x][y] == '0')
-					{
-						cout<<"\e[30m";
-						cout<<buffer[x][y];
+					cout<<"\n\nIt's opponent's turn, wait for your turn\n";
 
-					}
-					else if(buffer[x][y] == 'O')
-					{
-						cout<<"\e[97m";
-						cout<<buffer[x][y];
-					}
-					else
-					{
-						cout<<"\e[37m";
-						cout<<buffer[x][y];
-					}
-					cout<<"\e[0m";
-				}
-			}
-			cout<<"Captured black stones: " + to_string(captured_black) +
-			"\nCaptured white stones: " + to_string(captured_white);
-			if(player_turn)
-				cout<<"\n\nIt's your turn, place your stone\n";
-			else
-				cout<<"\n\nIt's opponent's turn, wait for your turn\n";
+				cout<<"\nInstructions:\nPress \e[31marrow keys\e[0m to select intersection\nPress \e[31mP\e[0m to pass turn\n"
+					<<"Press \e[31mENTER\e[0m to select intersection\n";
+					// <<"Press \e[31mQ\e[0m to quit\n";
+	    }
 
-			cout<<"\nInstructions:\nPress \e[31marrow keys\e[0m to select intersection\nPress \e[31mP\e[0m to pass turn\n";
-			cout<<"Press \e[31mENTER\e[0m to select intersection\nPress \e[31mQ\e[0m to quit\n";
-    }
-			return 0;
+		return 0;
 	}
 
 	bool addStone(int color, int position[2])
@@ -547,10 +570,10 @@ public:
 
 	void getInput()
 	{
-    int g;
+    	int g;
 		if(player_turn)
 		{
-      g = getch();
+		g = getch();
   		if(g == 27)
   		{
   			getch();
@@ -603,43 +626,49 @@ public:
 			}
 			else if(g==112)
 			{
-				Connection->sendMessage(tlv_pass);
-				pass=true;
-				player_turn=false;
-				//TODO: finish action on pass
+				Connection -> sendMessage(tlv_pass);
+				pass = true;
+				player_turn = false;
 			}
 		}
 		else
 		{
 			receiveUpdate();
 		}
-		if(g==113)
-		{
-			//TODO: finish action on quit
-			system("clear");
-			cout<<"If you want to quit press \e[31mY\e[0m, else press any other key";
-			g = getch();
-			if(g == 27)
-			{
-				getch();
-				g = getch();
-			}
-			if(g==121)
-			{
-				system("clear");
-				cout<<"NO WAY PAL, KEEP PLAYING!";
-				cout<<"\e[?25h"<<endl;
-			}
-		}
+		// if(g==113)
+		// {
+		// 	//TODO: finish action on quit
+		// 	system("clear");
+		// 	cout<<"If you want to quit press \e[31mY\e[0m, else press any other key";
+		// 	g = getch();
+		// 	if(g == 27)
+		// 	{
+		// 		getch();
+		// 		g = getch();
+		// 	}
+		// 	if(g==121)
+		// 	{
+		// 		system("clear");
+		// 		cout<<"NO WAY PAL, KEEP PLAYING!";
+		// 		cout<<"\e[?25h"<<endl;
+		// 	}
+		// }
 	}
 
-  void run()
-  {
-    while(game_finished == false)
-    {
-      drawBoard();
-      getInput();
-    }
-      drawBoard();
-  }
+	void run()
+	{
+		sleep(0.5);
+
+		while(game_finished == false)
+		{
+			drawBoard();
+			getInput();
+		}
+
+		drawBoard();
+		cout<<"\033[1;32m";
+		centerText("[Press any key to continue]", 5);
+		cout<<"\033[0m";
+		getchar();
+	}
 };
