@@ -37,12 +37,12 @@ int main()
 	networkingServer Server;
 	goGame Game(&Server);
 
-	Game.board_size = 19;
-	Game.initializeBoard(Game.board, Game.board_size, Game.captured_white, Game.captured_black, true, Game.player_turn);
+	Game.setBoardSize(19);
+	Game.initializeBoard();
 
 	while(true)
 	{
-		Game.getInput(Game.cursor_position, Game.player_turn, Game.captured_black, Game.captured_white, true);
+		Game.getInput();
 	}
 	
 	return 0;

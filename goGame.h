@@ -1,15 +1,9 @@
 #include<iostream>
-#include<list>
 #include<vector>
-#include<string>
-#include<utility>
-#include<stdlib.h>
 #include<assert.h>
 #include<unistd.h>
 #include<termios.h>
-#include<algorithm>
 #include"networking.h"
-
 
 #pragma once
 
@@ -21,8 +15,10 @@ class goGame
 private:
 
 	tlv tlv_cursor, tlv_stone, tlv_pass, tlv_board_size, tlv_quit, buff;
+	vector<vector<int> > board;
 	networkingBase *Connection;
-	bool pass;
+	int board_size;
+	bool pass, player_turn, is_host;
 
 	void sendCursor(pair<int,int> cursor_position)
 	{
@@ -38,12 +34,11 @@ private:
 		Connection->sendMessage(tlv_stone);
 	}
 
-	//receiveUpdate(board,cursor_position,pass,player_turn,captured_black,captured_white,points_black,points_white,board_size);
-	void receiveUpdate(vector<vector<int> > &board, pair<int,int> &cursor_position, bool &pass, bool &player_turn, int &captured_black, int &captured_white, int &points_black, int &points_white, int &board_size)
+	void receiveUpdate()
 	{
 		buff = Connection->receiveMessage();
 
-		switch (buff.type)
+		switch(buff.type)
 		{
 			case 0x1:
 			cursor_position.first = buff.value.x;
@@ -53,14 +48,14 @@ private:
 			int a[2];
 			a[0]=buff.value.x;
 			a[1]=buff.value.y;
-			addStone(board, BLACK, a, captured_black, captured_white);
+			addStone(BLACK, a);
 			player_turn = true;
 			break;
 			case 0x3:
 			if(pass)
 			{
 				system("clear");
-				countPoints(board, points_black, points_white, captured_black, captured_white);
+				countPoints();
 				cout<<"Final score white: "<<points_white<<" points"<<endl
 				<<"Final score black: "<<points_black<<" points"<<endl;
 					//TODO: go back to menu or quit
@@ -96,11 +91,11 @@ private:
 	*
 	*	\return int (0 if no stone can be captured else returns number of removed stones)
 	*/
-	int captureStones(vector<vector<int>> &board, int position[2])
+	int captureStones(int position[2])
 	{
-		vector<pair<int,int>> tested;
-		vector<pair<int,int>> to_test;
-		pair<int,int> test_pos;
+		vector<pair<int, int> > tested;
+		vector<pair<int, int> > to_test;
+		pair<int, int> test_pos;
 		test_pos.first = position[0];
 		test_pos.second = position[1];
 		int color = board[position[0]][position[1]];
@@ -108,7 +103,7 @@ private:
 
 		while(true)
 		{
-			if(test_pos.first>=0 && test_pos.first<board.size() && test_pos.second>=0 && test_pos.second<board.size())                       //check if test_pos inside playfield
+			if(test_pos.first >= 0 && test_pos.first < board.size() && test_pos.second >= 0 && test_pos.second < board.size())                       //check if test_pos inside playfield
 			{
 				//test adjacent fields, if the same color add to to_test
 				tested.push_back(test_pos);                                               //add to already tested
@@ -187,19 +182,22 @@ private:
 
 public:
 
-	int board_size;
-	int captured_white=0;
-	int captured_black=0;
-	int points_black=0;
-	int points_white=0;
-	pair<int,int> cursor_position=make_pair(0,0);
-	bool player_turn = false;
-	vector<vector<int>> board;
+	int captured_white = 0;
+	int captured_black = 0;
+	int points_black = 0;
+	int points_white = 0;
+	pair<int, int> cursor_position = make_pair(0,0);
 	int local_player_color = WHITE;
-	int is_host=true;
+
+	void setBoardSize(int boardSize)
+	{
+		board_size = boardSize;
+	}
 
 	goGame(networkingBase *conn)
 	{
+		is_host = false;
+		player_turn = false;
 		Connection = conn;
 
 		tlv_cursor.type	   = 0x1;
@@ -223,6 +221,9 @@ public:
 		tlv_quit.length = 0;
 
 		pass = false;
+
+		if(Connection -> isServer())
+			is_host = true;
 	}
 
 	enum fieldValues
@@ -234,9 +235,9 @@ public:
 
 	enum boardSizeList
 	{
-		SMALL = 9,
+		SMALL  = 9,
 		MEDIUM = 13,
-		LARGE = 19
+		LARGE  = 19
 	};
 
 	int getch()
@@ -259,7 +260,7 @@ public:
 		return(c);
 	}
 
-	int initializeBoard(vector<vector<int> > &board, int board_size, int &captured_white, int &captured_black, bool is_host, bool &player_turn)
+	int initializeBoard()
 	{
 		if(is_host)
 		{
@@ -277,7 +278,7 @@ public:
 		{
 			local_player_color = BLACK;
 			player_turn=false;
-			receiveUpdate(board,cursor_position,pass,player_turn,captured_black,captured_white,points_black,points_white,board_size);
+			receiveUpdate();
 		}
 		board.clear();
 		for(int y=0; y<board_size; y++)
@@ -291,7 +292,7 @@ public:
 		return 0;
 	}
 
-	void countPoints(vector<vector<int>> &board, int &points_black, int &points_white, int &captured_black, int &captured_white)
+	void countPoints()
 	{
 		points_black = captured_white;
 		points_white = captured_black;
@@ -392,7 +393,7 @@ public:
 			}
 	}
 
-	int drawBoard(vector<vector<int>> &board, pair<int,int> cursor, bool &player_turn, int &captured_black, int &captured_white)
+	int drawBoard(pair<int,int> cursor)
 	{
 		system("clear");
 		int board_size = board.size();
@@ -491,7 +492,7 @@ public:
 			return 0;
 	}
 
-	bool addStone(vector<vector<int> > &board, int color, int position[2], int &captured_black, int &captured_white)
+	bool addStone(int color, int position[2])
 	{
 		if(board[position[0]][position[1]]==EMPTY)
 		{
@@ -508,7 +509,7 @@ public:
 					temp_pos[0]<board.size() && temp_pos[1]<board.size())
 				{
 					if(board[temp_pos[0]][temp_pos[1]] == -color)
-						captured+=captureStones(board, temp_pos);
+						captured+=captureStones(temp_pos);
 					else
 						surrounded = false;
 				}
@@ -531,7 +532,7 @@ public:
 			return false;
 	}
 
-	void getInput(pair<int,int> &cursor_position, bool &player_turn, int &captured_black, int &captured_white, bool is_host)
+	void getInput()
 	{
 		int g = getch();
 		if(g == 27)
@@ -548,7 +549,7 @@ public:
 				{
 					cursor_position.second--;
 					sendCursor(cursor_position);
-					drawBoard(board, cursor_position, player_turn, captured_black, captured_white);
+					drawBoard(cursor_position);
 				}
 			}
 			else if(g==66)
@@ -557,7 +558,7 @@ public:
 				{
 					cursor_position.second++;
 					sendCursor(cursor_position);
-					drawBoard(board, cursor_position, player_turn, captured_black, captured_white);
+					drawBoard(cursor_position);
 				}
 			}
 			else if(g==67)
@@ -566,7 +567,7 @@ public:
 				{
 					cursor_position.first++;
 					sendCursor(cursor_position);
-					drawBoard(board, cursor_position, player_turn, captured_black, captured_white);
+					drawBoard(cursor_position);
 				}
 			}
 			else if(g==68)
@@ -575,7 +576,7 @@ public:
 				{
 					cursor_position.first--;
 					sendCursor(cursor_position);
-					drawBoard(board, cursor_position, player_turn, captured_black, captured_white);
+					drawBoard(cursor_position);
 				}
 			}
 			else if(g==10)
@@ -583,10 +584,11 @@ public:
 				int a[2];
 				a[0]=cursor_position.second;
 				a[1]=cursor_position.first;
-				if(addStone(board, local_player_color, a, captured_black, captured_white))
+
+				if(addStone(local_player_color, a))
 				{
 					sendStone(cursor_position);
-					drawBoard(board, cursor_position, player_turn, captured_black, captured_white);
+					drawBoard(cursor_position);
 					player_turn=false;
 				}
 			}
@@ -600,7 +602,7 @@ public:
 		}
 		else
 		{
-			receiveUpdate(board,cursor_position,pass,player_turn,captured_black,captured_white,points_black,points_white,board_size);
+			receiveUpdate();
 		}
 		if(g==113)
 		{
@@ -621,7 +623,7 @@ public:
 			}
 			else
 			{
-				drawBoard(board, cursor_position, player_turn, captured_black, captured_white);
+				drawBoard(cursor_position);
 			}
 		}
 	}

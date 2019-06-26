@@ -37,11 +37,11 @@ int main()
 	networkingClient Client((char*)"2001:db8:0:f101::1");
 	goGame Game(&Client);
 
-	Game.initializeBoard(Game.board, Game.board_size, Game.captured_white, Game.captured_black, true, Game.player_turn);
+	Game.initializeBoard();
 
 	while(true)
 	{
-		Game.getInput(Game.cursor_position, Game.player_turn, Game.captured_black, Game.captured_white, true);
+		Game.getInput();
 	}
 
 	return 0;
