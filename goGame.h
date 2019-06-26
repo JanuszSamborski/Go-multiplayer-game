@@ -74,7 +74,7 @@ private:
 		}
 	}
 
-	bool inVector(vector<pair<int,int>> &tested, pair<int,int> &test_pos)
+	bool inVector(vector<pair<int,int> > &tested, pair<int,int> &test_pos)
 	{
 		for(int i=0; i<tested.size(); i++)
 		{
@@ -505,7 +505,7 @@ public:
 				int temp_pos[2];
 				temp_pos[0]=position[0]+iterate_array[i][0];
 				temp_pos[1]=position[1]+iterate_array[i][1];
-				if(temp_pos[0]>=0 && temp_pos[1]>=0 &&
+				if(temp_pos[0]>=0 && temp_pos[1]>=0 && \
 					temp_pos[0]<board.size() && temp_pos[1]<board.size())
 				{
 					if(board[temp_pos[0]][temp_pos[1]] == -color)
