@@ -11,7 +11,7 @@ void sendReceiveTest()
 	tlv test,test2;
 
 	test = Server.receiveMessage();
-	
+
 	cout<<"type: " + to_string(test.type)<<endl
 		<<"length: " + to_string(test.length)<<endl
 		<<"value 1: " + to_string(test.value.x)<<endl
@@ -40,10 +40,7 @@ int main()
 	Game.setBoardSize(19);
 	Game.initializeBoard();
 
-	while(true)
-	{
-		Game.getInput();
-	}
-	
+	Game.run();
+
 	return 0;
 }

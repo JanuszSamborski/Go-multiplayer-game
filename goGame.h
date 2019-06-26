@@ -18,7 +18,7 @@ private:
 	vector<vector<int> > board;
 	networkingBase *Connection;
 	int board_size;
-	bool pass, player_turn, is_host;
+	bool pass, player_turn, is_host, game_finished = false;
 
 	void sendCursor(pair<int,int> cursor_position)
 	{
@@ -37,7 +37,7 @@ private:
 	void receiveUpdate()
 	{
 		buff = Connection->receiveMessage();
-
+    //cout<<"\nMessage: "<<buff.type<<"/"<<buff.length<<"/"<<buff.value.x<<":"<<buff.value.y<<endl;
 		switch(buff.type)
 		{
 			case 0x1:
@@ -46,23 +46,26 @@ private:
 			break;
 			case 0x2:
 			int a[2];
-			a[0]=buff.value.x;
-			a[1]=buff.value.y;
-			addStone(BLACK, a);
+			a[0]=buff.value.y;
+			a[1]=buff.value.x;
+      if(is_host)
+			   addStone(BLACK, a);
+      else
+         addStone(WHITE, a);
 			player_turn = true;
 			break;
 			case 0x3:
-			if(pass)
-			{
-				system("clear");
-				countPoints();
-				cout<<"Final score white: "<<points_white<<" points"<<endl
-				<<"Final score black: "<<points_black<<" points"<<endl;
-					//TODO: go back to menu or quit
-			}
-			else
-				player_turn=true;
-			break;
+  			if(pass)
+  			{
+  				if(game_finished == false)
+          {
+            Connection->sendMessage(tlv_pass);
+            game_finished = true;
+          }
+  			}
+  			else
+  				player_turn=true;
+			  break;
 			case 0x4:
 			if(buff.value.x==0)
 				board_size=SMALL;
@@ -280,6 +283,7 @@ public:
 			player_turn=false;
 			receiveUpdate();
 		}
+
 		board.clear();
 		for(int y=0; y<board_size; y++)
 		{
@@ -377,11 +381,9 @@ public:
 							switch (current_color)
 							{
 								case WHITE:
-								printf("add to white %d\n", empty_count);
 								points_white += empty_count;
 								break;
 								case BLACK:
-								printf("add to black\n");
 								points_black += empty_count;
 								break;
 							}
@@ -393,10 +395,20 @@ public:
 			}
 	}
 
-	int drawBoard(pair<int,int> cursor)
+	int drawBoard()
 	{
 		system("clear");
-		int board_size = board.size();
+    cout<<endl;
+    if(game_finished)
+    {
+      system("clear");
+      countPoints();
+      cout<<"Final score white: "<<points_white<<" points"<<endl
+      <<"Final score black: "<<points_black<<" points"<<endl;
+    }
+    else
+    {
+    int board_size = board.size();
 		char buffer[board_size*2][board_size];
 		for(size_t y=0; y<board_size; y++)
 		{
@@ -443,7 +455,7 @@ public:
 			for(int x=0; x<board_size*2; x++)
 			{
 				cout<<"\e[?25l";
-				if(y==cursor.second && x==cursor.first*2)
+				if(y==cursor_position.second && x==cursor_position.first*2)
 				{
 					if(player_turn)
 					{
@@ -488,7 +500,8 @@ public:
 				cout<<"\n\nIt's opponent's turn, wait for your turn\n";
 
 			cout<<"\nInstructions:\nPress \e[31marrow keys\e[0m to select intersection\nPress \e[31mP\e[0m to pass turn\n";
-			cout<<"Press \e[31mENTER\e[0m to select intersection\nPress \e[31mQ\e[0m to quit";
+			cout<<"Press \e[31mENTER\e[0m to select intersection\nPress \e[31mQ\e[0m to quit\n";
+    }
 			return 0;
 	}
 
@@ -534,22 +547,22 @@ public:
 
 	void getInput()
 	{
-		int g = getch();
-		if(g == 27)
-		{
-			getch();
-			g = getch();
-		}
-
+    int g;
 		if(player_turn)
 		{
+      g = getch();
+  		if(g == 27)
+  		{
+  			getch();
+  			g = getch();
+  		}
+
 			if(g==65)
 			{
 				if(cursor_position.second>0)
 				{
 					cursor_position.second--;
 					sendCursor(cursor_position);
-					drawBoard(cursor_position);
 				}
 			}
 			else if(g==66)
@@ -558,7 +571,6 @@ public:
 				{
 					cursor_position.second++;
 					sendCursor(cursor_position);
-					drawBoard(cursor_position);
 				}
 			}
 			else if(g==67)
@@ -567,7 +579,6 @@ public:
 				{
 					cursor_position.first++;
 					sendCursor(cursor_position);
-					drawBoard(cursor_position);
 				}
 			}
 			else if(g==68)
@@ -576,7 +587,6 @@ public:
 				{
 					cursor_position.first--;
 					sendCursor(cursor_position);
-					drawBoard(cursor_position);
 				}
 			}
 			else if(g==10)
@@ -588,7 +598,6 @@ public:
 				if(addStone(local_player_color, a))
 				{
 					sendStone(cursor_position);
-					drawBoard(cursor_position);
 					player_turn=false;
 				}
 			}
@@ -621,10 +630,16 @@ public:
 				cout<<"NO WAY PAL, KEEP PLAYING!";
 				cout<<"\e[?25h"<<endl;
 			}
-			else
-			{
-				drawBoard(cursor_position);
-			}
 		}
 	}
+
+  void run()
+  {
+    while(game_finished == false)
+    {
+      drawBoard();
+      getInput();
+    }
+      drawBoard();
+  }
 };
