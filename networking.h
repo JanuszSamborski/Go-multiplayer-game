@@ -7,6 +7,8 @@
 #include<sys/socket.h>
 #include<cstdint>
 
+#pragma once
+
 #define MAXLINE 4
 #define LISTENQ 2
 
@@ -34,6 +36,8 @@ class networkingBase
 	int	sockfd;
 
 	public:
+
+	virtual bool isServer() = 0;
 
 	void sendMessage(tlv message)
 	{
@@ -117,6 +121,11 @@ class networkingServer: public networkingBase
 	{
 		close(sockfd);
 	}
+
+	bool isServer()
+	{
+		return true;
+	}
 };
 
 class networkingClient : public networkingBase
@@ -142,5 +151,10 @@ class networkingClient : public networkingBase
 
 		if(connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
 			throw logic_error("Connect error: " + (string)strerror(errno));
+	}
+
+	bool isServer()
+	{
+		return false;
 	}
 };
