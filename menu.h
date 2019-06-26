@@ -94,7 +94,7 @@ protected:
 	{
 		int columns, where;
 		struct winsize size;
-		
+
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
 		columns = size.ws_col + 1;
@@ -132,7 +132,7 @@ public:
 
 	/*
 	*	A graphical way of asking user for a value
-	*		
+	*
 	*	\return int corresponding to chosen option
 	*/
 	int ask()
@@ -186,6 +186,6 @@ public:
 	{
 		system("clear");
 		centerText("Waiting for client...", 2);
-		throw logic_error("NotImplemented exception");
+		//throw logic_error("NotImplemented exception");
 	}
 };
