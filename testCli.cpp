@@ -6,6 +6,14 @@ using namespace std;
 int main()
 {
 	networkingClient Client("2001:db8:0:f101::1");
+	logic Game;
+
+	Game.initializeBoard(Game.board, Game.board_size, Game.captured_white, Game.captured_black, true, Game.player_turn);
+	while(true)
+	{
+		Game.getInput(Game.cursor_position, Game.player_turn, Game.captured_black, Game.captured_white, true);
+	}
+/*
 	tlv test, test2;
 	test.type=0x1;
 	test.length=2;
@@ -21,6 +29,6 @@ int main()
 		<<"value 2: " + to_string(test2.value.y)<<endl;
 
 
-
+*/
 	return 0;
 }

@@ -10,7 +10,6 @@ int main()
 {
 	logic game;
 	game.board_size = 19;
-	game.local_player_color = game.BLACK;
 	game.initializeBoard(game.board, game.board_size, game.captured_white, game.captured_black);
 	int b[8][2]={{1,1},{1,2},{1,3},{2,1},{2,3},{3,1},{3,2},{3,3}};
 	for(int i=0; i<8; i++)

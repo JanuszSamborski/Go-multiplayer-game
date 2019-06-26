@@ -1,11 +1,20 @@
 #include<iostream>
 #include"networking.h"
-
+#include"goGame.h"
 using namespace std;
 
 int main()
 {
 	networkingServer Server;
+	logic Game;
+
+	Game.board_size = 19;
+	Game.initializeBoard(Game.board, Game.board_size, Game.captured_white, Game.captured_black, true, Game.player_turn);
+	while(true)
+	{
+		Game.getInput(Game.cursor_position, Game.player_turn, Game.captured_black, Game.captured_white, true);
+	}
+	/*
 	tlv test,test2;
 
 
@@ -22,7 +31,7 @@ int main()
 		test2.value.y=30;
 
 		Server.sendMessage(test2);
-
+		*/
 
 	return 0;
 }
