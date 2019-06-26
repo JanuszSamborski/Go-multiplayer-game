@@ -27,13 +27,13 @@ struct tlv
 class networkingBase
 {
 
-protected:
+	protected:
 
 	char recvline[MAXLINE], buff[MAXLINE];
 	sockaddr_in6 servaddr;
 	int	sockfd;
 
-public:
+	public:
 
 	void sendMessage(tlv message)
 	{
@@ -73,12 +73,12 @@ public:
 
 class networkingServer: public networkingBase
 {
-	char str[INET6_ADDRSTRLEN + 1];
 	int	listenfd;
 	sockaddr_in6 cliaddr;
 	socklen_t len;
 
-public:
+	public:
+
 	networkingServer()
 	{
 
@@ -106,6 +106,7 @@ public:
 			throw logic_error("Accept error: " + (string)strerror(errno));
 
 		// for debug prints ip addr
+		char str[INET6_ADDRSTRLEN + 1];
 		bzero(str, sizeof(str));
 		inet_ntop(AF_INET6, (struct sockaddr  *) &cliaddr.sin6_addr,  str, sizeof(str));
 		printf("Connection from %s\n", str);
@@ -121,7 +122,8 @@ public:
 class networkingClient : public networkingBase
 {
 
-public:
+	public:
+
 	networkingClient(char IP[])
 	{
 		int err;
