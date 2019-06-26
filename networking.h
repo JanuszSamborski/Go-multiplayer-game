@@ -14,7 +14,7 @@ using namespace std;
 
 struct point
 {
-	uint8_t x,y;
+	uint8_t x, y;
 };
 
 struct tlv
@@ -24,22 +24,71 @@ struct tlv
 	point value;
 };
 
-
-
-class networkingServer
+class networkingBase
 {
-	int	listenfd, connfd;
+
+protected:
+
+	char recvline[MAXLINE], buff[MAXLINE];
+	sockaddr_in6 servaddr;
+	int	sockfd;
+
+public:
+
+	void sendMessage(tlv message)
+	{
+		buff[0] = message.type;
+		buff[1] = message.length;
+		buff[2] = message.value.x;
+		buff[3] = message.value.y;
+
+		if(write(sockfd, buff, MAXLINE) < 0)
+			throw logic_error("Write error: " + (string)strerror(errno));
+	}
+
+	tlv receiveMessage()
+	{
+		tlv received_value;
+		int n;
+
+		if(n = read(sockfd, recvline, MAXLINE) <= 0)
+			throw logic_error("Read error" + to_string(n));
+
+		received_value.type 	= (uint8_t)recvline[0];
+		received_value.length	= (uint8_t)recvline[1];
+
+		switch (received_value.length)
+		{
+			case 2:
+				received_value.value.y = (uint8_t)recvline[3];
+			case 1:
+				received_value.value.x = (uint8_t)recvline[2];
+				break;
+		}
+
+		return received_value;
+	}
+
+};
+
+class networkingServer: public networkingBase
+{
+	char str[INET6_ADDRSTRLEN + 1];
+	int	listenfd;
+	sockaddr_in6 cliaddr;
 	socklen_t len;
-	char buff[MAXLINE], str[INET6_ADDRSTRLEN+1];
-	char recvline[MAXLINE];
-	time_t ticks;
-	struct sockaddr_in6	servaddr, cliaddr;
 
 public:
 	networkingServer()
 	{
+
+		int so_reuseaddr = 1;
+
 		if((listenfd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
 			throw logic_error("Socket error: " + (string)strerror(errno));
+
+		if (setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, &so_reuseaddr, sizeof so_reuseaddr) < 0)
+    		throw logic_error("Setsockopt error: " + (string)strerror(errno));
 
 		bzero(&servaddr, sizeof(servaddr));
 		servaddr.sin6_family = AF_INET6;
@@ -53,66 +102,29 @@ public:
 			throw logic_error("Listen error: " + (string)strerror(errno));
 
 		len = sizeof(cliaddr);
-		if((connfd = accept(listenfd, (struct sockaddr *) &cliaddr, &len)) < 0)
+		if((sockfd = accept(listenfd, (struct sockaddr *) &cliaddr, &len)) < 0)
 			throw logic_error("Accept error: " + (string)strerror(errno));
-		// TODO the rest
 
 		// for debug prints ip addr
 		bzero(str, sizeof(str));
 		inet_ntop(AF_INET6, (struct sockaddr  *) &cliaddr.sin6_addr,  str, sizeof(str));
 		printf("Connection from %s\n", str);
 		// end debug
-
-		// till here
 	}
 
 	~networkingServer()
 	{
-		close(connfd);
+		close(sockfd);
 	}
-
-	void sendMessage(tlv message)
-	{
-		buff[0]=message.type;
-		buff[1]=message.length;
-		buff[2]=message.value.x;
-		buff[3]=message.value.y;
-
-
-		if(write(connfd, buff, 4)< 0)
-			throw logic_error("Write error: " + (string)strerror(errno));
-	}
-
-	tlv receiveMessage()
-	{
-		tlv received_value;
-		if(int n = read(connfd, recvline, 4)<=0)
-			throw logic_error("Read error" + to_string(n));
-
-		received_value.type = (uint8_t)recvline[0];
-		received_value.length = (uint8_t)recvline[1];
-		switch (received_value.length) {
-			case 2:
-				received_value.value.y=(uint8_t)recvline[3];
-			case 1:
-				received_value.value.x=(uint8_t)recvline[2];
-			break;
-		}
-		return received_value;
-	}
-
 };
 
-class networkingClient
+class networkingClient : public networkingBase
 {
-
-	int	sockfd, n, err;
-	struct sockaddr_in6	servaddr;
-	char recvline[MAXLINE], buff[MAXLINE];
 
 public:
 	networkingClient(char IP[])
 	{
+		int err;
 
 		if((sockfd = socket(AF_INET6, SOCK_STREAM, 0)) < 0)
 			throw logic_error("Socket error: " + (string)strerror(errno));
@@ -128,46 +140,5 @@ public:
 
 		if(connect(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr)) < 0)
 			throw logic_error("Connect error: " + (string)strerror(errno));
-
-		// TODO: the rest
-
-		// till here
 	}
-
-	~networkingClient()
-	{
-		// TODO: closing routine
-	}
-
-	void sendMessage(tlv message)
-	{
-		buff[0]=message.type;
-		buff[1]=message.length;
-		buff[2]=message.value.x;
-		buff[3]=message.value.y;
-
-
-		if(write(sockfd, buff, 4)< 0)
-			throw logic_error("Write error: " + (string)strerror(errno));
-	}
-
-	tlv receiveMessage()
-	{
-		tlv received_value;
-		if(int n = read(sockfd, recvline, 4)<=0)
-			throw logic_error("Read error" + to_string(n));
-
-		received_value.type = (uint8_t)recvline[0];
-		received_value.length = (uint8_t)recvline[1];
-		switch (received_value.length) {
-			case 2:
-				received_value.value.y=(uint8_t)recvline[3];
-			case 1:
-				received_value.value.x=(uint8_t)recvline[2];
-			break;
-		}
-		return received_value;
-	}
-
-
 };
